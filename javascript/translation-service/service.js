@@ -1,12 +1,17 @@
-/// <reference path="./global.d.ts" />
-// @ts-check
-//
-// The lines above enable type checking for this file. Various IDEs interpret
-// the @ts-check and reference directives. Together, they give you helpful
-// autocompletion when implementing this exercise. You don't need to understand
-// them in order to use it.
-//
-// In your own projects, files, and code, you can play with @ts-check as well.
+/**
+ * Universidad de La Laguna
+ * Escuela Superior de Ingeniería y Tecnología
+ * Grado en Ingeniería Informática
+ * Programación de Aplicaciones Interactivas 2021-2022
+ *
+ * @author Florian Reitz
+ * @since Marzo 3 2022
+ * @desc Translation Service
+ * @see {@link https://exercism.org/tracks/javascript/exercises/translation-service}
+ *
+ */
+
+'use strict';
 
 export class TranslationService {
   /**
@@ -27,7 +32,7 @@ export class TranslationService {
    * @returns {Promise<string>}
    */
   free(text) {
-    throw new Error('Implement the free function');
+    return this.api.fetch(text).then(result => result.translation);
   }
 
   /**
@@ -41,7 +46,9 @@ export class TranslationService {
    * @returns {Promise<string[]>}
    */
   batch(texts) {
-    throw new Error('Implement the batch function');
+    if (texts.length === 0) return Promise.reject(new BatchIsEmpty());
+
+    return Promise.all(texts.map((text) => this.free(text)));
   }
 
   /**
@@ -54,7 +61,18 @@ export class TranslationService {
    * @returns {Promise<void>}
    */
   request(text) {
-    throw new Error('Implement the request function');
+    const translationPromise = (text) => new Promise((resolve, reject) => {
+      this.api.request(text, (error) => {
+        if(error){
+          reject(error);
+        }else{
+          resolve();
+        }
+      })
+    })
+    return translationPromise(text)
+      .catch(() => translationPromise(text))
+      .catch(() => translationPromise(text));
   }
 
   /**
@@ -68,7 +86,16 @@ export class TranslationService {
    * @returns {Promise<string>}
    */
   premium(text, minimumQuality) {
-    throw new Error('Implement the premium function');
+    return this.api.fetch(text)
+      .catch(() => {
+        return this.request(text).then(() => this.api.fetch(text));
+      })
+      .then((translation) => {
+        if(translation.quality < minimumQuality){
+          throw new QualityThresholdNotMet(text);
+        }
+        return translation.translation;
+      })
   }
 }
 
