@@ -26,13 +26,16 @@ export const classify = (number) => {
 
 const getSumOfFactors = (factors) => {
   if(factors.length === 0) return 0;
+  
   return factors.reduce((number1, number2) => number1 + number2);
 }
 
 const getFactors = (number) => {
   let factors = [];
+
   for (let i = 1; i < number; i++){
     if (number % i == 0) factors.push(i);
   }
+
   return factors;
 }
